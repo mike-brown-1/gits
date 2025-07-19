@@ -30,10 +30,11 @@ def processDir(rootDir):
    for dirpath, dirnames, filenames in os.walk(rootDir):
       repo_path = pygit2.discover_repository(dirpath)
       if repo_path is not None:
-         print(f"Repository: {dirpath}")
+
          repo = pygit2.Repository(repo_path)
          dirty_items = repo.status().items()
          is_clean = True if not dirty_items else False
+         print(f"Repository: {dirpath} is clean: {is_clean}")
          for entry, status in repo.status().items():
             print(f"\tFile: {entry}, status: {get_readable_status(status)}")
 
