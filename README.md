@@ -10,4 +10,5 @@ gits is written in [Python](https://en.wikipedia.org/wiki/Python_(programming_la
 
 Libraries required for this application can be installed with by running `pip install -r requirements.txt`.  If new libraries are added, update requirements.txt by running: `pip freeze > requirements.txt`.
 
+The primary library used is [pygit2](https://github.com/libgit2/pygit2), which has good [documentation](https://www.pygit2.org/).  This library does not use the `git` command, which means it is a faster option.  If you are using this on Windows or macOS, you will need to install libgit2 yourself.
 
