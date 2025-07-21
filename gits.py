@@ -1,7 +1,22 @@
 import sys
 import os
 import pygit2
+from dataclasses import dataclass
+
 ## from pygit2 import Repository, GitError, discover_repository, GIT_STATUS_WT_NEW, GIT_STATUS_INDEX_NEW
+
+@dataclass
+class RepoClass:
+    root_dir: str
+    is_dirty: bool
+    untracked: int
+    staged_new: int
+    staged_deleted: int
+    modified: int
+    deleted: int
+    conflicted: int
+    unchanged: int
+
 
 def get_readable_status(statusFlags):
     status_map = {
@@ -27,23 +42,36 @@ def get_readable_status(statusFlags):
     return readable
 
 def processDir(rootDir):
+   repos = []
    for dirpath, dirnames, filenames in os.walk(rootDir):
       repo_path = pygit2.discover_repository(dirpath)
       if repo_path is not None:
 
          repo = pygit2.Repository(repo_path)
          dirty_items = repo.status().items()
-         is_clean = True if not dirty_items else False
-         print(f"Repository: {dirpath} is clean: {is_clean}")
+         is_dirty = True if dirty_items else False
+         r = RepoClass(dirpath, is_dirty, 0, 0, 0, 0, 0, 0, 0)
+         print(f"Repository: {dirpath} is dirty: {is_dirty}")
          for entry, status in repo.status().items():
-            print(f"\tFile: {entry}, status: {get_readable_status(status)}")
+            # print(f"\tFile: {entry}, status: {get_readable_status(status)}")
+            if status & pygit2.GIT_STATUS_WT_MODIFIED:
+                r.modified += 1
+            if status & pygit2.GIT_STATUS_WT_NEW:
+                r.untracked += 1
+
+         repos.append(r)
 
          # Prevent re-walking into subdirectories of a found repo
          # This is important because discover_repository might find the same repo
          # if we continued walking into its subdirectories.
          del dirnames[:] 
+   return repos
+
 
 if len(sys.argv) <= 1:
    print("You must provide a directory to search")
 else:
-   processDir(sys.argv[1])
+   repos = processDir(sys.argv[1])
+   print(f'Found {len(repos)} repositories.')
+   for r in repos:
+       print(f"Dir: {r.root_dir}, is dirty: {r.is_dirty}, untracked: {r.untracked}, modified: {r.modified}")
