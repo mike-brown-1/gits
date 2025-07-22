@@ -2,8 +2,8 @@ import sys
 import os
 import pygit2
 from dataclasses import dataclass
-
-## from pygit2 import Repository, GitError, discover_repository, GIT_STATUS_WT_NEW, GIT_STATUS_INDEX_NEW
+import typer
+from typing_extensions import Annotated
 
 @dataclass
 class RepoClass:
@@ -41,7 +41,10 @@ def get_readable_status(statusFlags):
 
     return readable
 
-def processDir(rootDir):
+def processDir(rootDir: str) -> list[RepoClass]:
+   """Attempt to search rootDir directory hierarchy for Git repositories
+returning any found as a list of RepoClass object."""
+
    repos = []
    for dirpath, dirnames, filenames in os.walk(rootDir):
       repo_path = pygit2.discover_repository(dirpath)
@@ -53,7 +56,7 @@ def processDir(rootDir):
          r = RepoClass(dirpath, is_dirty, 0, 0, 0, 0, 0, 0, 0)
          print(f"Repository: {dirpath} is dirty: {is_dirty}")
          for entry, status in repo.status().items():
-            # print(f"\tFile: {entry}, status: {get_readable_status(status)}")
+            # TODO Add more flags
             if status & pygit2.GIT_STATUS_WT_MODIFIED:
                 r.modified += 1
             if status & pygit2.GIT_STATUS_WT_NEW:
@@ -67,11 +70,15 @@ def processDir(rootDir):
          del dirnames[:] 
    return repos
 
+def main(root_dir: Annotated[str, typer.Argument(help="Directory path to search")],
+         show_dirty: Annotated[bool, typer.Option("--dirty", "-d", help="Show only dirty repositories")] = False):
+    print(f"Searching: {root_dir}, dirty: {show_dirty}")
 
-if len(sys.argv) <= 1:
-   print("You must provide a directory to search")
-else:
-   repos = processDir(sys.argv[1])
-   print(f'Found {len(repos)} repositories.')
-   for r in repos:
-       print(f"Dir: {r.root_dir}, is dirty: {r.is_dirty}, untracked: {r.untracked}, modified: {r.modified}")
+    repos = processDir(root_dir)
+    print(f'Found {len(repos)} repositories.')
+    for r in repos:
+        print(f"Dir: {r.root_dir}, is dirty: {r.is_dirty}, untracked: {r.untracked}, modified: {r.modified}")
+
+
+if __name__ == "__main__":
+    typer.run(main)
