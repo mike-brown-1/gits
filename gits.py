@@ -56,7 +56,7 @@ returning any found as a list of RepoClass object."""
          dirty_items = repo.status().items()
          is_dirty = True if dirty_items else False
          r = RepoClass(dirpath, is_dirty, 0, 0, 0, 0, 0, 0, 0)
-         print(f"Repository: {dirpath} is dirty: {is_dirty}")
+        #  print(f"Repository: {dirpath} is dirty: {is_dirty}")
          for entry, status in repo.status().items():
             # TODO Add more flags
             if status & pygit2.GIT_STATUS_WT_MODIFIED:
@@ -76,13 +76,14 @@ def main(root_dir: Annotated[str, typer.Argument(help="Directory path to search"
          show_dirty: Annotated[bool, typer.Option("--dirty", "-d", help="Show only dirty repositories")] = False
          ):
     
-    print(f"gits v {VERSION}: Searching: {root_dir}, dirty: {show_dirty}")
+    print(f"gits v {VERSION}: Searching: {root_dir}, dirty: {show_dirty}\n")
 
     repos = processDir(root_dir)
-    print(f'Found {len(repos)} repositories.')
+    # print(f'Found {len(repos)} repositories.')
     for r in repos:
         if (show_dirty and r.is_dirty) or not show_dirty:
-            print(f"Dir: {r.root_dir}, is dirty: {r.is_dirty}, untracked: {r.untracked}, modified: {r.modified}")
+            repo_name = r.root_dir[len(root_dir) + 1:] if r.root_dir.startswith(root_dir) else r.root_dir
+            print(f"Dir: {repo_name}, is dirty: {r.is_dirty}, untracked: {r.untracked}, modified: {r.modified}")
 
 
 if __name__ == "__main__":
