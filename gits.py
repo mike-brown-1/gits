@@ -5,6 +5,8 @@ from dataclasses import dataclass
 import typer
 from typing_extensions import Annotated
 
+VERSION = '0.2.0'
+
 @dataclass
 class RepoClass:
     root_dir: str
@@ -71,13 +73,16 @@ returning any found as a list of RepoClass object."""
    return repos
 
 def main(root_dir: Annotated[str, typer.Argument(help="Directory path to search")],
-         show_dirty: Annotated[bool, typer.Option("--dirty", "-d", help="Show only dirty repositories")] = False):
-    print(f"Searching: {root_dir}, dirty: {show_dirty}")
+         show_dirty: Annotated[bool, typer.Option("--dirty", "-d", help="Show only dirty repositories")] = False
+         ):
+    
+    print(f"gits v {VERSION}: Searching: {root_dir}, dirty: {show_dirty}")
 
     repos = processDir(root_dir)
     print(f'Found {len(repos)} repositories.')
     for r in repos:
-        print(f"Dir: {r.root_dir}, is dirty: {r.is_dirty}, untracked: {r.untracked}, modified: {r.modified}")
+        if (show_dirty and r.is_dirty) or not show_dirty:
+            print(f"Dir: {r.root_dir}, is dirty: {r.is_dirty}, untracked: {r.untracked}, modified: {r.modified}")
 
 
 if __name__ == "__main__":
